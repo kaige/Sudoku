@@ -1,9 +1,7 @@
 Sudoku
 ======
 
-
-
-a simple program that generate a solution for a 9X9 Sudoku game
+A simple program that generates a solution for a 9X9 Sudoku game
 
 // -----------------------------------------------------------------------------
 //
@@ -24,6 +22,6 @@ a simple program that generate a solution for a 9X9 Sudoku game
 //
 // where "0" is the cell to be filled
 //
-// Author:  Kai Zhang
-// Date:    2014/4/19
+// Author: 	Kai Zhang
+// Date: 	2014/4/19
 // ----------------------------------------------------------------------------
