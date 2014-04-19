@@ -3,9 +3,11 @@ Sudoku
 
 A simple program that generates a solution for a 9X9 Sudoku game
 
+
 Usage: ksudoku.exe sudoku_file.txt
 
-the sudoku file should be a text file like the following:
+
+The sudoku file should be a text file like the following:
 
 
 3 0 0 0 6 7 9 0 0
