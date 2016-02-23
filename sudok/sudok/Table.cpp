@@ -6,7 +6,13 @@ namespace KSudoku {
 bool Cell::increaseValue()
 {
     mValue++;
-    return mValue <= 9;
+    if (mValue <= 9)
+        return true;
+    else
+    {
+        mValue = 0;     // reset to 0
+        return false;
+    }
 }
 
 Table* Table::createTable(int inputArray[9][9])

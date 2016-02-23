@@ -44,8 +44,8 @@ bool ProcessCell(Table& table, Cell& cell) {
         bool getAValidAnswer = false;
         while (!getAValidAnswer)
         {
-            bool b = cell.increaseValue();
-            if (b)
+            getAValidAnswer = cell.increaseValue();
+            if (getAValidAnswer)
             {
                 getAValidAnswer = table.verifyCell(cell);
                 if (getAValidAnswer)
@@ -57,18 +57,13 @@ bool ProcessCell(Table& table, Cell& cell) {
                     }
                     else
                     {
-                        break;
+                        return table.verifyCell(cell);;
                     }
                 }
             }
             else
-            {
-                break;
-            }
+                break;      // we have exhaust the value in this cell, break
         }
-
-        if (!getAValidAnswer)
-            cell.resetValue();
 
         return getAValidAnswer;
     }
