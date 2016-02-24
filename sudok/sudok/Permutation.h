@@ -3,5 +3,5 @@
 namespace KSudoku {
     class Table;
 
-    bool SolveByBackTracking(Table& table);
+    bool SolveByPermutation(const Table& table);
 }

@@ -27,6 +27,7 @@
 #include <string>
 #include "Table.h"
 #include "BackTracking.h"
+#include "Permutation.h"
 
 using namespace KSudoku;
 
@@ -67,17 +68,21 @@ int _tmain(int argc, char* argv[])
 	printf("the original table is...\n\n");
 	aTable->print();
 
-	bool b = SolveByBackTracking(*aTable);
-
-	if (b)
-	{
-		printf("we find a solutions!\n");
-		aTable->print();
-	}
-	else
-	{
-		printf("we don't find a solution\n");
-	}
+    if (argc == 2)
+    {
+        SolveByBackTracking(*aTable);   // default to backtracking
+    }
+    else if (argc == 3){
+        const char* mode = argv[2];
+        if (strcmp(mode, "backtracking") == 0)
+        {
+            SolveByBackTracking(*aTable);
+        }
+        else if (strcmp(mode, "permutation") == 0)
+        {
+            SolveByPermutation(*aTable);
+        }
+    }
 
 	delete aTable;
 	return 0;

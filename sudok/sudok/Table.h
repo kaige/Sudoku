@@ -28,18 +28,19 @@ namespace KSudoku {
     class Table {
     public:
         static Table*  createTable(int inputArray[9][9]);
-        void 	print();
-
-        bool 	hasNextCell(const Cell& cell);
-        Cell& 	getNextCell(const Cell& cell);
-        Cell&   getFirstCell();
-        bool 	veifyAll();
-        bool 	verifyCell(const Cell& cell);
+        void 	       print();
+                       
+        bool 	       hasNextCell(const Cell& cell) const;
+        Cell& 	       getNextCell(const Cell& cell);
+        Cell&          getFirstCell();
+        bool 	       veifyAll() const;
+        bool 	       verifyCell(const Cell& cell) const;
+        const Cell&    getCell(int i, int j) const;
 
     private:
         Table();
         void 	initConstCell(int i, int j, int v);
-        bool 	verifyNumbers(int v[9]);
+        bool 	verifyNumbers(int v[9]) const;
 
     private:
         Cell 	mCells[9][9];
