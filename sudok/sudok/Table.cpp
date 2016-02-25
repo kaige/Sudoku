@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Table.h"
+#include <set>
 
 namespace KSudoku {
 
@@ -160,6 +161,75 @@ namespace KSudoku {
         return true;
     }
 
+    void Table::getPossibleValues(const Cell& cell, ValueList& cellList) const
+    {
+        if (cell.isConst())
+            return;
+
+        int row = cell.x();
+        int collumn = cell.y();
+
+        std::set<int> existingValueSet;
+
+        // get row cells
+        for (int j = 0; j < 9; j++)
+        {
+            const Cell& thisCell = mCells[row][j];
+            if (thisCell.isConst())
+            {
+                existingValueSet.insert(thisCell.value());
+            }
+        }
+
+        // get column cells
+        for (int i = 0; i < 9; i++)
+        {
+            const Cell& thisCell = mCells[i][collumn];
+            if (thisCell.isConst())
+            {
+                existingValueSet.insert(thisCell.value());
+            }
+        }
+
+        // get sub-region cells
+        //
+        // the 9x9 sudoku matrix can be divided into 9 sub-region,
+        // with the following 9 cells as the top-left corners
+        // (0, 0), (0, 3), (0, 6)
+        // (3, 0), (3, 3), (3, 6)
+        // (6, 0), (6, 3), (6, 6)
+        //
+        // now we determine which sub-region this cell is in
+        //
+        int baseX = cell.x() / 3 * 3;
+        int baseY = cell.y() / 3 * 3;
+
+        // collect the numbers in the identified sub-region
+        int nIndex = 0;
+        for (int i = 0; i < 3; i++)
+        {
+
+            for (int j = 0; j < 3; j++)
+            {
+                const Cell& thisCell = mCells[baseX + i][baseY + j];
+                if (thisCell.isConst())
+                {
+                    existingValueSet.insert(thisCell.value());
+                }
+            }
+        }
+
+        cellList.clear();
+
+        for (int i = 1; i <= 9; i++)
+        {
+            if (existingValueSet.find(i) == existingValueSet.end())
+            {
+                cellList.push_back(i);
+            }
+        }
+    }
+
     bool Table::veifyAll() const
     {
         for (int i = 0; i < 9; i++)
@@ -198,6 +268,11 @@ namespace KSudoku {
     const Cell& Table::getCell(int i, int j) const
     {
         return mCells[i][j];
+    }
+
+    Cell* Table::getCellPtr(int i, int j)
+    {
+        return &(mCells[i][j]);
     }
 
     void Table::initConstCell(int i, int j, int v)

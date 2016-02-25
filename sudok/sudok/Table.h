@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 
 namespace KSudoku {
 
@@ -25,6 +26,8 @@ namespace KSudoku {
         bool 	mIsConst;
     };
 
+    typedef std::vector<int> ValueList;
+
     class Table {
     public:
         static Table*  createTable(int inputArray[9][9]);
@@ -35,7 +38,9 @@ namespace KSudoku {
         Cell&          getFirstCell();
         bool 	       veifyAll() const;
         bool 	       verifyCell(const Cell& cell) const;
+        void           getPossibleValues(const Cell& cell, ValueList& cellList) const;
         const Cell&    getCell(int i, int j) const;
+        Cell*          getCellPtr(int i, int j);
 
     private:
         Table();

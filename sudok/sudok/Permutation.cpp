@@ -2,100 +2,121 @@
 #include "Table.h"
 #include "BackTracking.h"
 #include <stdio.h>
+#include <vector>
 
 namespace KSudoku {
 
-    bool GetNextPermuation(Table& table)
+    class CellValue {
+    public:
+        CellValue(Cell* pCell, const ValueList& valueList);
+        bool takeNextPossibleValue();
+        void takeCurrentPossibleValue();
+        int numOfPossibleValues() { return m_possibleValues.size(); }
+    private:
+        Cell*               m_pCell;
+        ValueList           m_possibleValues;
+        int                 m_curentValueIndex;
+    };
+
+    typedef std::vector<CellValue> CellValueList;
+
+    CellValue::CellValue(Cell* pCell, const ValueList& valueList)
+        : m_pCell(pCell), m_possibleValues(valueList), m_curentValueIndex(0)
     {
+    }
 
-        Cell* pCell = &table.getFirstCell();
+    bool CellValue::takeNextPossibleValue()
+    {
+        m_curentValueIndex++;
 
-        bool bIsValueValid = pCell->increaseValue();
-        if (bIsValueValid)
-            return true;
+        bool bCurrentValueValid = false;
+        if (m_curentValueIndex < (int) m_possibleValues.size())
+            bCurrentValueValid = true;
+        else
+        {
+            m_curentValueIndex = 0;     // reset to 0
+            bCurrentValueValid = false;
+        }
 
-        bool bHasNextCell = true;
-        while (bHasNextCell) {
-            bHasNextCell = table.hasNextCell(*pCell);
-            if (!bHasNextCell)
-                break;
+        m_pCell->setValue(m_possibleValues[m_curentValueIndex]);
+        return bCurrentValueValid;
+    }
 
-            Cell* pNextCell = &table.getNextCell(*pCell);
-            bIsValueValid = pNextCell->increaseValue();
+    void CellValue::takeCurrentPossibleValue()
+    {
+        m_pCell->setValue(m_possibleValues[m_curentValueIndex]);
+    }
+
+    bool GetNextPermutation( CellValueList& cellValueList)
+    {
+        CellValueList::iterator it = cellValueList.begin();
+        for (; it != cellValueList.end(); ++it)
+        {
+            bool bIsValueValid = it->takeNextPossibleValue();
             if (bIsValueValid)
                 return true;
-            else
-                pCell = pNextCell;
         }
 
-        return false;
+        return false; // we exhaust all the value combination
     }
 
-    bool IsEqualOnConstValue(const Table& inputTable, const Table& solutionTable)
+    void BuildCellValueList(Table& table, CellValueList& cellValueList)
     {
+        cellValueList.clear();
+
         for (int i = 0; i < 9; i++)
         {
             for (int j = 0; j < 9; j++)
             {
-                const Cell& inputCell = inputTable.getCell(i, j);
-                if (!inputCell.isConst())
-                    continue;
+                Cell* pCell = table.getCellPtr(i, j);
+                if (!pCell->isConst())
+                {
+                    ValueList possibleValueList;
+                    table.getPossibleValues(*pCell, possibleValueList);
 
-                if (inputCell.value() != solutionTable.getCell(i, j).value())
-                    return false;
+                    CellValue valueListEntry(pCell, possibleValueList);
+                    cellValueList.push_back(valueListEntry);
+                }
             }
         }
-
-        return true;
     }
 
-    bool SolveByPermutation(const Table& table)
+    bool SolveByPermutation(Table& table)
     {
-        // create an empty solution table whose value is all 0
-        int allZeroArray[9][9];
-        for (int i = 0; i < 9; i++)
-        {
-            for (int j = 0; j < 9; j++)
-            {
-                allZeroArray[i][j] = 0;
-            }
-        }
-
         bool bHasSolution = false;
-        int trialSolutionNumber = 0;
 
-        Table* pSolutionTable = Table::createTable(allZeroArray);
-        while (GetNextPermuation(*pSolutionTable))
+        CellValueList cellValueList;
+        BuildCellValueList(table, cellValueList);
+
+        CellValueList::iterator it = cellValueList.begin();
+        double product = 1;
+        for (; it != cellValueList.end(); ++it)
         {
-            pSolutionTable->print();
+            product *= it->numOfPossibleValues();
+            it->takeCurrentPossibleValue();
+        }
 
-            getchar();
+        printf("we'll evaluate %f solutions\n", product);
 
-            if (IsEqualOnConstValue(table, *pSolutionTable))
+        if (table.veifyAll())
+        {
+            bHasSolution = true;
+            printf("we find a solution: \n");
+            table.print();
+        }
+
+        while (GetNextPermutation(cellValueList))
+        {
+            if (table.veifyAll())
             {
-                if (pSolutionTable->veifyAll())
-                {
-                    bHasSolution = true;
-                    printf("we find a solution: \n");
-                    pSolutionTable->print();
-                }
-                else
-                {
-                    printf("triable solution %d is not valid\n", trialSolutionNumber);
-                }
+                bHasSolution = true;
+                printf("we find a solution: \n");
+                table.print();
             }
-            else
-            {
-                printf("trial solution %d is not equal to input\n", trialSolutionNumber);
-            }
-
-            trialSolutionNumber++;
         }
 
         if (!bHasSolution)
             printf("we don't find a solution.\n");
-
-        delete pSolutionTable;
 
         return true;
     }

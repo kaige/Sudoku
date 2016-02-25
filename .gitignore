@@ -2,3 +2,5 @@ sudok/sudok/Debug/
 *.ipch
 *.opensdf
 *.sdf
+sudok/Release/
+sudok/sudok/Release/
