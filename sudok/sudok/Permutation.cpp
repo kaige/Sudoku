@@ -47,6 +47,38 @@ namespace KSudoku {
         m_pCell->setValue(m_possibleValues[m_curentValueIndex]);
     }
 
+    typedef std::vector<int>                SubRegionSolution;
+    typedef std::vector<SubRegionSolution>  SubRegionSolutionList;
+
+    class SubRegion {
+    public:
+        SubRegion();
+        void setBaseCoordinate(int x, int y);
+        void addCellValue(const CellValue& cv);
+    private:
+        int                     m_baseX;
+        int                     m_baseY;
+        CellValueList           m_cellValueList;
+        SubRegionSolutionList   m_solutions;
+    };
+
+    SubRegion::SubRegion()
+        : m_baseX(0), m_baseY(0)
+    {
+
+    }
+
+    void SubRegion::setBaseCoordinate(int x, int y)
+    {
+        m_baseX = x;
+        m_baseY = y;
+    }
+
+    void SubRegion::addCellValue(const CellValue& cv)
+    {
+        m_cellValueList.push_back(cv);
+    }
+
     bool GetNextPermutation( CellValueList& cellValueList)
     {
         CellValueList::iterator it = cellValueList.begin();
