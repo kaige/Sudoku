@@ -31,7 +31,7 @@
 
 using namespace KSudoku;
 
-Table* createTableFromFile(char* fileName)
+Table* createTableFromFile(const char* fileName)
 {
 	int a[9][9];	// the sudoku array
 
