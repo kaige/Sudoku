@@ -3,6 +3,7 @@
 #include "BackTracking.h"
 #include <stdio.h>
 #include <vector>
+#include <tuple>
 
 namespace KSudoku {
 
@@ -14,7 +15,6 @@ namespace KSudoku {
         Cell* cell() const        { return m_pCell; }
         int currentValue() const  { return m_possibleValues[m_curentValueIndex]; }
 
-        int numOfPossibleValues() { return m_possibleValues.size(); }
     private:
         Cell*               m_pCell;
         ValueList           m_possibleValues;
@@ -64,6 +64,8 @@ namespace KSudoku {
         bool verify();
 
         void takeCurrentSolution();
+        int  currentSolutionIndex()             { return m_currentSolutionIndex; }
+        void setCurrentSolutionIndex(int n)     { m_currentSolutionIndex = n; }
         bool takeNextSolution();
 
         int numOfSolutions() const { return (int) m_solutions.size(); }
@@ -120,14 +122,10 @@ namespace KSudoku {
         bool bHasSolution = false;
 
         CellValueList::iterator it = m_cellValueList.begin();
-        double product = 1;
         for (; it != m_cellValueList.end(); ++it)
         {
-            product *= it->numOfPossibleValues();
             it->takeCurrentPossibleValue();
         }
-
-        printf("we'll evaluate %f solutions in this sub-region\n", product);
 
         if (verify())
         {
@@ -214,6 +212,157 @@ namespace KSudoku {
         return bCurrentIndexValid;
     }
 
+    typedef std::tuple<int, int, int>           SubRegionRowSolution;
+    typedef std::vector<SubRegionRowSolution>   SubRegionRowSolutionList;
+
+    class SubRegionRow
+    {
+    public:
+        SubRegionRow();
+        void setSubRegion(Table* pTable, int nBaseRow, SubRegion* p1, SubRegion* p2, SubRegion* p3);
+
+        bool solveByPermutation();
+        bool verify();
+
+        void takeCurrentSolution();
+        void setCurrentSolutionIndex(int n) { m_currentSolutionIndex = n; }
+        bool takeNextSolution();
+
+    private:
+        static bool GetNextPermutation(SubRegion* regions[3]);
+        void addSubRegionRowSolution();
+    private:
+        Table*                      m_pTable;
+        int                         m_baseRow;
+        SubRegion*                  m_subRegions[3];
+        SubRegionRowSolutionList    m_solutions;
+        int                         m_currentSolutionIndex;
+    };
+
+    SubRegionRow::SubRegionRow()
+        : m_pTable(nullptr), m_baseRow(0), m_currentSolutionIndex(0)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            m_subRegions[i] = nullptr;
+        }
+    }
+
+    void SubRegionRow::setSubRegion(Table* pTable, int nBaseRow, SubRegion* p1, SubRegion* p2, SubRegion* p3)
+    {
+        m_pTable = pTable;
+        m_baseRow = nBaseRow;
+        m_subRegions[0] = p1;
+        m_subRegions[1] = p2;
+        m_subRegions[2] = p3;
+    }
+
+    bool SubRegionRow::solveByPermutation()
+    {
+        bool bHasSolution = false;
+
+        for (int i = 0; i < 3; i++)
+        {
+            m_subRegions[i]->setCurrentSolutionIndex(0);
+            m_subRegions[i]->takeCurrentSolution();
+        }
+
+        if (verify())
+        {
+            bHasSolution = true;
+            addSubRegionRowSolution();
+        }
+
+        while (GetNextPermutation(m_subRegions))
+        {
+            if (verify())
+            {
+                bHasSolution = true;
+                addSubRegionRowSolution();
+            }
+        }
+
+        if (!bHasSolution)
+            printf("we don't find a solution.\n");
+
+        return bHasSolution;
+    }
+
+    bool SubRegionRow::verify()
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            // in each row the number 1 ~ 9 should appear and only appear once
+            int numAppearnce[9];
+            for (int n = 0; n < 9; n++)
+                numAppearnce[n] = 0;
+
+            for (int j = 0; j < 9; j++)
+            {
+                int cellValue = m_pTable->getCell(m_baseRow + i, j).value();
+                numAppearnce[cellValue - 1]++;
+            }
+
+            for (int n = 0; n < 9; n++)
+            {
+                if (numAppearnce[n] != 1)
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool SubRegionRow::GetNextPermutation(SubRegion* regions[3])
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            bool bIsSolutionValid = regions[i]->takeNextSolution();
+            if (bIsSolutionValid)
+                return true;
+        }
+
+        return false;
+    }
+
+    void SubRegionRow::addSubRegionRowSolution()
+    {
+        SubRegionRowSolution sol(m_subRegions[0]->currentSolutionIndex(),
+            m_subRegions[1]->currentSolutionIndex(),
+            m_subRegions[2]->currentSolutionIndex());
+
+        m_solutions.push_back(sol);
+    }
+
+    void SubRegionRow::takeCurrentSolution()
+    {
+        SubRegionRowSolution sol = m_solutions[m_currentSolutionIndex];
+        m_subRegions[0]->setCurrentSolutionIndex(std::get<0>(sol));
+        m_subRegions[0]->takeCurrentSolution();
+
+        m_subRegions[1]->setCurrentSolutionIndex(std::get<1>(sol));
+        m_subRegions[1]->takeCurrentSolution();
+
+        m_subRegions[2]->setCurrentSolutionIndex(std::get<2>(sol));
+        m_subRegions[2]->takeCurrentSolution();
+    }
+
+    bool SubRegionRow::takeNextSolution()
+    {
+        m_currentSolutionIndex++;
+
+        bool bCurrentIndexValid = false;
+        if (m_currentSolutionIndex < (int)m_solutions.size())
+            bCurrentIndexValid = true;
+        else
+        {
+            m_currentSolutionIndex = 0;     // reset to 0
+            bCurrentIndexValid = false;
+        }
+
+        takeCurrentSolution();
+        return bCurrentIndexValid;
+    }
 
     void BuildCellValueList(Table& table, CellValueList& cellValueList)
     {
@@ -256,16 +405,13 @@ namespace KSudoku {
         }
     }
 
-    bool GetNextPermutation(SubRegion subRegions[3][3])
+    bool GetNextPermutation(SubRegionRow subRegionRows[3])
     {
         for (int i = 0; i < 3; i++)
         {
-            for (int j = 0; j < 3; j++)
-            {
-                bool bHasSolution = subRegions[i][j].takeNextSolution();
-                if (bHasSolution)
-                    return true;
-            }
+            bool bHasSolution = subRegionRows[i].takeNextSolution();
+            if (bHasSolution)
+                return true;
         }
 
         return false;
@@ -296,22 +442,33 @@ namespace KSudoku {
             }
         }
 
-        // let all sub regions take their first solution, verify
-        int product = 1;
+        // divide the sub regions into 3 sub region rows
+        bHasSolution = false;
+
+        SubRegionRow subRegionRows[3];
+        subRegionRows[0].setSubRegion(&table, 0, &subRegions[0][0], &subRegions[0][1], &subRegions[0][2]);
+        subRegionRows[1].setSubRegion(&table, 3, &subRegions[1][0], &subRegions[1][1], &subRegions[1][2]);
+        subRegionRows[2].setSubRegion(&table, 6, &subRegions[2][0], &subRegions[2][1], &subRegions[2][2]);
+
         for (int i = 0; i < 3; i++)
         {
-            for (int j = 0; j < 3; j++)
+            bHasSolution = subRegionRows[i].solveByPermutation();
+            if (!bHasSolution)
             {
-                product *= subRegions[i][j].numOfSolutions();
-                subRegions[i][j].takeCurrentSolution();
+                printf("we don't find a solution.\n");
+                return false;
             }
         }
 
-        printf("we'll evaluate %d solutions\n", product);
+        // now let all sub region rows take their first solution, verify
+        bHasSolution = false;
 
-        int numSolutionVerified = 0;
+        for (int i = 0; i < 3; i++)
+        {
+            subRegionRows[i].setCurrentSolutionIndex(0);
+            subRegionRows[i].takeCurrentSolution();
+        }
 
-        numSolutionVerified++;
         if (table.veifyAll())
         {
             bHasSolution = true;
@@ -319,12 +476,9 @@ namespace KSudoku {
             table.print();
         }
 
-        // now permutate the solutions in each sub region to get the solution of the whole table
-        while (GetNextPermutation(subRegions))
+        // now permutate the solutions in each sub region row to get the solution of the whole table
+        while (GetNextPermutation(subRegionRows))
         {
-            numSolutionVerified++;
-            printf("%d solutions verified\n", numSolutionVerified);
-
             if (table.veifyAll())
             {
                 bHasSolution = true;
