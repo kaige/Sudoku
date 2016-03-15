@@ -23,5 +23,6 @@ where "0" is the cell to be filled
 the "mode" can take below values, which refers to different solving algorithms
 * backtracking
 * permutation
+ 
 If not specifying mode it's default to "backtracking"
 
