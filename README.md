@@ -3,11 +3,9 @@ Sudoku
 
 A simple 9X9 Sudoku solver
 
-
 Usage: ksudoku.exe \<sudoku_file_path\> [mode]
 
 The "sudoku file" should be a text file like the following:
-
 <br>3 0 0 0 6 7 9 0 0
 <br>1 0 0 0 8 9 2 5 0
 <br>0 6 5 0 4 0 3 0 0
