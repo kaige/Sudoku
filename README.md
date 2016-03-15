@@ -1,7 +1,7 @@
 Sudoku
 ======
 
-A simple program that generates a solution for a 9X9 Sudoku game
+A simple 9X9 Sudoku solver
 
 
 Usage: ksudoku.exe sudoku_file.txt
