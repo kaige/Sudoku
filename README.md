@@ -5,7 +5,7 @@ A simple 9X9 Sudoku solver
 
 Usage: 
 ```
-ksudoku.exe \<sudoku_file_path\> [mode]
+ksudoku.exe <sudoku_file_path> [mode]
 ```
 
 The "sudoku file" should be a text file like the following:
